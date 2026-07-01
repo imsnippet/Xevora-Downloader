@@ -1,0 +1,199 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/outfit";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit Variable", "Inter Variable", ui-sans-serif, sans-serif;
+
+  --radius-sm: calc(var(--radius) - 6px);
+  --radius-md: calc(var(--radius) - 4px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 10px);
+  --radius-3xl: calc(var(--radius) + 18px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-glow: var(--primary-glow);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+}
+
+:root {
+  --radius: 18px;
+
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.16 0.005 260);
+  --surface: oklch(0.985 0.003 260);
+  --surface-elevated: oklch(0.975 0.004 260);
+  --card: oklch(0.985 0.003 260);
+  --card-foreground: oklch(0.16 0.005 260);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.16 0.005 260);
+
+  /* Brand red #E50914 */
+  --primary: oklch(0.585 0.234 27);
+  --primary-foreground: oklch(0.99 0 0);
+  --primary-glow: oklch(0.66 0.245 25);
+
+  --secondary: oklch(0.96 0.005 260);
+  --secondary-foreground: oklch(0.2 0.01 260);
+
+  --muted: oklch(0.965 0.004 260);
+  --muted-foreground: oklch(0.5 0.012 260);
+
+  --accent: oklch(0.965 0.004 260);
+  --accent-foreground: oklch(0.2 0.01 260);
+
+  --destructive: oklch(0.585 0.234 27);
+  --destructive-foreground: oklch(0.99 0 0);
+
+  --success: oklch(0.72 0.18 150);
+  --warning: oklch(0.82 0.16 80);
+
+  --border: oklch(0.92 0.005 260);
+  --input: oklch(0.93 0.005 260);
+  --ring: oklch(0.585 0.234 27 / 0.5);
+
+  --gradient-primary: linear-gradient(135deg, oklch(0.585 0.234 27), oklch(0.66 0.245 20));
+  --gradient-hero: radial-gradient(60% 60% at 50% 0%, oklch(0.585 0.234 27 / 0.18), transparent 70%);
+  --shadow-elegant: 0 20px 60px -20px oklch(0.585 0.234 27 / 0.35);
+  --shadow-glass: 0 1px 0 0 oklch(1 0 0 / 0.5) inset, 0 20px 50px -20px oklch(0.16 0.005 260 / 0.18);
+  --glass-bg: oklch(1 0 0 / 0.6);
+  --glass-border: oklch(0.16 0.005 260 / 0.06);
+}
+
+.dark {
+  --background: oklch(0.16 0.008 265);
+  --foreground: oklch(0.98 0.003 260);
+  --surface: oklch(0.195 0.01 265);
+  --surface-elevated: oklch(0.22 0.012 265);
+  --card: oklch(0.195 0.01 265);
+  --card-foreground: oklch(0.98 0.003 260);
+  --popover: oklch(0.195 0.01 265);
+  --popover-foreground: oklch(0.98 0.003 260);
+
+  --primary: oklch(0.66 0.245 25);
+  --primary-foreground: oklch(0.99 0 0);
+  --primary-glow: oklch(0.72 0.235 22);
+
+  --secondary: oklch(0.24 0.012 265);
+  --secondary-foreground: oklch(0.98 0.003 260);
+
+  --muted: oklch(0.24 0.012 265);
+  --muted-foreground: oklch(0.72 0.012 260);
+
+  --accent: oklch(0.26 0.014 265);
+  --accent-foreground: oklch(0.98 0.003 260);
+
+  --destructive: oklch(0.66 0.245 25);
+  --destructive-foreground: oklch(0.99 0 0);
+
+  --success: oklch(0.76 0.18 150);
+  --warning: oklch(0.85 0.16 80);
+
+  --border: oklch(1 0 0 / 0.08);
+  --input: oklch(1 0 0 / 0.1);
+  --ring: oklch(0.66 0.245 25 / 0.6);
+
+  --gradient-primary: linear-gradient(135deg, oklch(0.66 0.245 25), oklch(0.585 0.234 27));
+  --gradient-hero: radial-gradient(60% 60% at 50% 0%, oklch(0.66 0.245 25 / 0.28), transparent 70%);
+  --shadow-elegant: 0 20px 70px -20px oklch(0.66 0.245 25 / 0.55);
+  --shadow-glass: 0 1px 0 0 oklch(1 0 0 / 0.04) inset, 0 20px 50px -20px oklch(0 0 0 / 0.6);
+  --glass-bg: oklch(0.2 0.01 265 / 0.55);
+  --glass-border: oklch(1 0 0 / 0.08);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html {
+    scroll-behavior: smooth;
+    font-size: 125%; /* Scales the entire UI up significantly */
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+}
+
+@utility glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-glass);
+}
+
+@utility text-gradient {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility shadow-elegant {
+  box-shadow: var(--shadow-elegant);
+}
+
+@utility bg-gradient-primary {
+  background: var(--gradient-primary);
+}
+
+@utility hero-grid {
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--foreground) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--foreground) 6%, transparent) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 30%, transparent 75%);
+}
+
+@keyframes float-blob {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(20px, -30px) scale(1.05); }
+}
+.animate-blob { animation: float-blob 14s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

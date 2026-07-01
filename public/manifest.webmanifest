@@ -1,0 +1,10 @@
+{
+  "name": "Xevora",
+  "short_name": "Xevora",
+  "description": "Download media in seconds. Fast, modern, beautiful.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0F1115",
+  "theme_color": "#E50914",
+  "icons": []
+}
