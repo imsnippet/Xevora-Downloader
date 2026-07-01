@@ -122,139 +122,127 @@ function isYouTubeUrl(url: string): boolean {
   } catch { return false; }
 }
 
-/**
- * Extract YouTube video using @distube/ytdl-core (no binary, no API key required).
- */
 async function tryYtdlCore(url: string): Promise<MediaInfo | null> {
   if (!isYouTubeUrl(url)) return null;
-  try {
-    const ytdl = await import("@distube/ytdl-core");
-    const info = await ytdl.default.getInfo(url);
-    const details = info.videoDetails;
+  const ytdl = await import("@distube/ytdl-core");
+  const info = await ytdl.default.getInfo(url);
+  const details = info.videoDetails;
 
-    const BLOCKED_ITAGS = new Set([17, 36]); // 3gp formats
-    const formats: MediaFormat[] = [];
+  const BLOCKED_ITAGS = new Set([17, 36]); // 3gp formats
+  const formats: MediaFormat[] = [];
 
-    for (const f of info.formats) {
-      if (BLOCKED_ITAGS.has(f.itag)) continue;
-      if (!f.url) continue;
-      // Skip HLS/DASH manifests
-      if (f.url.includes(".m3u8") || f.url.includes("manifest")) continue;
+  for (const f of info.formats) {
+    if (BLOCKED_ITAGS.has(f.itag)) continue;
+    if (!f.url) continue;
+    // Skip HLS/DASH manifests
+    if (f.url.includes(".m3u8") || f.url.includes("manifest")) continue;
 
-      const hasVideo = f.hasVideo ?? false;
-      const hasAudio = f.hasAudio ?? false;
-      if (!hasVideo && !hasAudio) continue;
+    const hasVideo = f.hasVideo ?? false;
+    const hasAudio = f.hasAudio ?? false;
+    if (!hasVideo && !hasAudio) continue;
 
-      const kind: FormatKind = hasVideo ? "video" : "audio";
-      const height = f.height ?? undefined;
-      if (kind === "video" && height !== undefined && height < 144) continue;
+    const kind: FormatKind = hasVideo ? "video" : "audio";
+    const height = f.height ?? undefined;
+    if (kind === "video" && height !== undefined && height < 144) continue;
 
-      formats.push({
-        id: String(f.itag),
-        kind,
-        ext: f.container ?? "mp4",
-        url: f.url,
-        height,
-        resolution: f.width && height ? `${f.width}x${height}` : undefined,
-        fps: f.fps ?? undefined,
-        bitrate: f.audioBitrate ?? undefined,
-        filesize: f.contentLength ? Number(f.contentLength) : undefined,
-        label: f.qualityLabel ?? (kind === "audio" ? "Audio" : undefined),
-        hasAudio,
-      });
-    }
-
-    if (formats.length === 0) return null;
-
-    // Sort: video formats first by height desc, then audio
-    formats.sort((a, b) => {
-      if (a.kind !== b.kind) return a.kind === "video" ? -1 : 1;
-      return (b.height ?? 0) - (a.height ?? 0);
+    formats.push({
+      id: String(f.itag),
+      kind,
+      ext: f.container ?? "mp4",
+      url: f.url,
+      height,
+      resolution: f.width && height ? `${f.width}x${height}` : undefined,
+      fps: f.fps ?? undefined,
+      bitrate: f.audioBitrate ?? undefined,
+      filesize: f.contentLength ? Number(f.contentLength) : undefined,
+      label: f.qualityLabel ?? (kind === "audio" ? "Audio" : undefined),
+      hasAudio,
     });
-
-    const thumb = details.thumbnails?.sort((a: any, b: any) => (b.width ?? 0) - (a.width ?? 0))[0]?.url;
-
-    return {
-      title: details.title,
-      thumbnail: thumb,
-      duration: details.lengthSeconds ? Number(details.lengthSeconds) : undefined,
-      uploader: details.author?.name,
-      uploadDate: details.publishDate,
-      source: "youtube.com",
-      webpageUrl: url,
-      formats,
-    };
-  } catch (e) {
-    console.warn("ytdl-core extraction failed:", (e as Error).message);
-    return null;
   }
+
+  if (formats.length === 0) return null;
+
+  formats.sort((a, b) => {
+    if (a.kind !== b.kind) return a.kind === "video" ? -1 : 1;
+    return (b.height ?? 0) - (a.height ?? 0);
+  });
+
+  const thumb = details.thumbnails?.sort((a: any, b: any) => (b.width ?? 0) - (a.width ?? 0))[0]?.url;
+
+  return {
+    title: details.title,
+    thumbnail: thumb,
+    duration: details.lengthSeconds ? Number(details.lengthSeconds) : undefined,
+    uploader: details.author?.name,
+    uploadDate: details.publishDate,
+    source: "youtube.com",
+    webpageUrl: url,
+    formats,
+  };
 }
 
 async function tryLocalYtDlp(url: string): Promise<MediaInfo | null> {
-  try {
-    const { default: youtubedl } = await import("youtube-dl-exec");
-    const data = await youtubedl(url, {
-      dumpJson: true,
-      noWarnings: true,
-      noCallHome: true,
-      preferFreeFormats: true,
-      youtubeSkipDashManifest: true,
-    }) as unknown as Record<string, unknown>;
-    const info = normaliseYtDlp(data, url);
-    if (info.formats.length > 0) return info;
-    return null;
-  } catch (e) {
-    console.warn("Local youtube-dl extraction failed:", (e as Error).message);
-    return null;
-  }
+  const { default: youtubedl } = await import("youtube-dl-exec");
+  const data = await youtubedl(url, {
+    dumpJson: true,
+    noWarnings: true,
+    noCallHome: true,
+    preferFreeFormats: true,
+    youtubeSkipDashManifest: true,
+  }) as unknown as Record<string, unknown>;
+  const info = normaliseYtDlp(data, url);
+  if (info.formats.length > 0) return info;
+  return null;
 }
 
 async function tryConfiguredApi(url: string): Promise<MediaInfo | null> {
   const endpoint = process.env.EXTRACTOR_API_URL;
-  if (!endpoint) return null;
-  try {
-    const res = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(process.env.EXTRACTOR_API_KEY
-          ? { Authorization: `Bearer ${process.env.EXTRACTOR_API_KEY}` }
-          : {}),
-      },
-      body: JSON.stringify({ url }),
-      signal: AbortSignal.timeout(25_000),
-    });
-    if (!res.ok) { console.warn(`Extractor API returned ${res.status}`); return null; }
-    const data = await res.json();
-    const info = normaliseYtDlp(data, url);
-    if (info.formats.length > 0) return info;
-    console.warn("Extractor API returned 0 usable formats");
-    return null;
-  } catch (e) {
-    console.warn("Extractor API failed:", (e as Error).message);
-    return null;
-  }
+  if (!endpoint) throw new Error("EXTRACTOR_API_URL is not configured.");
+  
+  const res = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(process.env.EXTRACTOR_API_KEY
+        ? { Authorization: `Bearer ${process.env.EXTRACTOR_API_KEY}` }
+        : {}),
+    },
+    body: JSON.stringify({ url }),
+    signal: AbortSignal.timeout(25_000),
+  });
+  if (!res.ok) throw new Error(`Extractor API returned ${res.status}`);
+  const data = await res.json();
+  const info = normaliseYtDlp(data, url);
+  if (info.formats.length > 0) return info;
+  throw new Error("Extractor API returned 0 usable formats");
 }
 
-/**
- * Extract media information from a URL.
- * Tries: ytdl-core (YouTube) -> local yt-dlp -> configured API
- */
 export async function extract(url: string): Promise<MediaInfo> {
-  // 1. @distube/ytdl-core - best for YouTube, pure Node.js, no binary needed
-  const ytdl = await tryYtdlCore(url);
-  if (ytdl) return ytdl;
+  const errors: string[] = [];
 
-  // 2. Local yt-dlp binary (if installed on server)
-  const local = await tryLocalYtDlp(url);
-  if (local) return local;
+  try {
+    const ytdl = await tryYtdlCore(url);
+    if (ytdl) return ytdl;
+  } catch (e) {
+    errors.push(`Local Extractor: ${(e as Error).message}`);
+  }
 
-  // 3. Configured external extractor API
-  const api = await tryConfiguredApi(url);
-  if (api) return api;
+  try {
+    const local = await tryLocalYtDlp(url);
+    if (local) return local;
+  } catch (e) {
+    errors.push(`Local Binary: ${(e as Error).message}`);
+  }
+
+  try {
+    const api = await tryConfiguredApi(url);
+    if (api) return api;
+  } catch (e) {
+    errors.push(`API: ${(e as Error).message}`);
+  }
 
   throw new ExtractorError(
-    "Could not extract media from this URL. The site may not be supported or extraction services are currently unavailable. Please try again later.",
+    `Extraction failed! Reason: ${errors.join(" | ")}`,
     422,
   );
 }
